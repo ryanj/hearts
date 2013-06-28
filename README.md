@@ -1,20 +1,24 @@
 hearts-websocket
 ================
 
-Hearts with 'websocket' nodejs library
+This is a working Hearts application using 'websocket' nodejs library
 
-Compile dependencies:
+<h3>Compile dependencies:</h3>
 
+<pre>
 $ cd hearts
 $ rm -R node_modules
 $ npm install
+</pre>
 
-Change database username and password in server.js
+<h3>Make a few changes to set ipaddr, port and database:</h3>
 
-Change server port in server.js
+<p>Change database username and password in <i>server.js</i></p>
+<p>Change server port in <i>server.js</i></p>
+<p>Change websocket address in <i>index.html</i></p>
 
-Change websocket address in index.html
+<h3>Run:</h3>
 
-Run:
-
+<pre>
 $ node server.js
+</pre>
