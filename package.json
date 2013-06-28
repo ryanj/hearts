@@ -1,0 +1,13 @@
+{
+  "name": "heartsonline",
+  "version": "0.0.1",
+  "author": "lellolandi <lellolandi@gmail.com>",
+  "dependencies": {
+    "ws": "*",
+    "mysql": "*"
+  },
+  "engines": {
+    "node": "*",
+    "npm": "*"
+  }
+}

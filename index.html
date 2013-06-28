@@ -1,0 +1,1036 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+<title>Hearts!</title>
+<link rel="shortcut icon" href="img/favicon.ico" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="jquery.min.js" ></script>
+<script type="text/javascript">
+
+// variabili di login //
+
+var socket = new WebSocket("ws://localhost:30000/index.html");
+var userreg = "";
+var name = "";
+var passwd = "";
+var onlinestring = "";
+var tableids = [];
+var iCreate = false;
+var intable = 0;
+var idtable = 0;
+
+// variabili di gioco //
+
+var fase = "pass";
+var pass = 0;
+var mano = [];
+var passate = [];
+var ricevute = [];
+var tavolo = [];
+var tocca = false;
+var toccaux = false;
+var broken = false;
+var primo = -1;
+var giocate = 0;
+var partials = [0,0,0,0];
+var totals = [0,0,0,0];
+var donna = -1;
+var ultimamano = [];
+var actualtheme = "default";
+
+// funzioni di login //
+
+function show(what){
+	document.getElementById("statsframe").style.display = "none";
+	document.getElementById("profiloframe").style.display = "none";
+	document.getElementById("tavoliframe").style.display = "none";
+	document.getElementById("regoleframe").style.display = "none";
+	document.getElementById("tavoli").style.backgroundColor = "rgba(0,0,0,0.1)";
+	document.getElementById("profilo").style.backgroundColor = "rgba(0,0,0,0.1)";
+	document.getElementById("statistiche").style.backgroundColor = "rgba(0,0,0,0.1)";
+	document.getElementById("regole").style.backgroundColor = "rgba(0,0,0,0.1)";
+	document.getElementById("tavoli").style.backgroundImage = "";
+	document.getElementById("profilo").style.backgroundImage = "";
+	document.getElementById("statistiche").style.backgroundImage = "";
+	document.getElementById("regole").style.backgroundImage = "";
+	document.getElementById(what).style.backgroundColor = "lightgoldenrodyellow";
+	document.getElementById(what).style.backgroundImage = "url(img/" + what + ".png)";
+	if (what == "tavoli"){
+		document.getElementById("tavoliframe").style.display = "block";
+	}else if (what == "profilo"){
+		document.getElementById("profiloframe").style.display = "block";
+		document.getElementById("pwdreinsert").style.display = "none";
+	}else if (what == "statistiche"){
+		document.getElementById("statsframe").style.display = "block";
+	}else if (what == "regole"){
+		document.getElementById("regoleframe").style.display = "block";
+	}
+}
+
+function createAccount(){
+	document.getElementById("loginform").style.display = "none";
+	document.getElementById("registrate").style.display = "block";
+	$("#msg").html("");
+}
+
+function backToLogin(){
+	document.getElementById("loginform").style.display = "block";
+	document.getElementById("registrate").style.display = "none";
+	$("#msg").html("");
+}
+
+function inTable(id){
+	intable = id;
+	document.getElementById("newtable").style.display = "none";
+	for (i=0;i<tableids.length;i++){
+		document.getElementById("bt" + tableids[i]).style.display = "none";
+		if (tableids[i] == id){
+			div = document.getElementById("bt" + id);
+			par = div.parentNode;
+			par.removeChild(div);
+			par.innerHTML += "<td class='btd' id='bt" + id + "' onclick='javascript:outTable(" + id + ")'>Esci</td>";
+		}
+	}
+	socket.send(JSON.stringify({entertable:name, id:id}));
+}
+
+function outTable(id){
+	intable = 0;
+	socket.send(JSON.stringify({awayfromtable:name, id:id}));
+}
+
+function destroyTable(id){
+	socket.send(JSON.stringify({destroytable:id}));
+}
+
+function changePwd(){
+	$("#pwdmsg").html("");
+	document.getElementById("pwdreinsert").style.display = "block";
+}
+
+function sortBy(what){
+	socket.send(JSON.stringify({wantstats:what}));
+}
+
+function newTable(){
+	for (i=0;i<tableids.length;i++){
+		document.getElementById("bt" + tableids[i]).style.display = "none";
+	}
+	document.getElementById("newtable").style.display = "none";
+	socket.send(JSON.stringify({newtable:name}));
+}
+
+// funzioni di gioco //
+
+function changetheme(theme) {
+	ids = ["passa","viste"];
+	if (theme == "default"){
+		actualtheme = "default";
+		document.body.style.backgroundColor = "green";
+		document.body.style.backgroundImage = "url(themes/default/defaultbg.png)";
+		document.body.style.backgroundRepeat = "no-repeat";
+		document.body.style.backgroundPosition = "center";
+		document.body.style.fontFamily = "defaultfont";
+		document.body.style.fontSize = "23px";
+		document.body.style.color = "black";
+		for (i=0;i<2;i++){
+			document.getElementById(ids[i]).style.fontSize = "23px";
+			document.getElementById(ids[i]).style.fontFamily = "defaultfont";
+			document.getElementById(ids[i]).style.color = "black";
+		}
+	}else if (theme == "wood"){
+		actualtheme = "wood";
+		document.body.style.background = "url(themes/wood/woodbg.png) no-repeat center center fixed";
+		document.body.style.fontFamily = "wood";
+		document.body.style.fontSize = "23px";
+		document.body.style.color = "peachpuff";
+		for (i=0;i<2;i++){
+			document.getElementById(ids[i]).style.fontSize = "23px";
+			document.getElementById(ids[i]).style.fontFamily = "wood";
+			document.getElementById(ids[i]).style.color = "peachpuff";
+		}
+	}else if (theme == "hellokitty"){
+		actualtheme = "hellokitty";
+		document.body.style.backgroundColor = "#FFD5E5";
+		document.body.style.backgroundImage = "url(themes/hellokitty/hellokitty.png)";
+		document.body.style.backgroundRepeat = "no-repeat";
+		document.body.style.backgroundPosition = "center";
+		document.body.style.fontFamily = "hellokitty";
+		document.body.style.fontSize = "23px";
+		document.body.style.color = "#E73136";
+		for (i=0;i<2;i++){
+			document.getElementById(ids[i]).style.fontSize = "23px";
+			document.getElementById(ids[i]).style.fontFamily = "hellokitty";
+			document.getElementById(ids[i]).style.color = "#E73136";
+		}
+	}else if (theme == "umbe"){
+		actualtheme = "comunismo";
+		document.body.style.background = "url(themes/comunismo/combg.png) no-repeat center center fixed";
+		document.body.style.fontFamily = "soviet";
+		document.body.style.fontSize = "23px";
+		document.body.style.color = "yellow";
+		for (i=0;i<2;i++){
+			document.getElementById(ids[i]).style.fontSize = "23px";
+			document.getElementById(ids[i]).style.fontFamily = "soviet";
+			document.getElementById(ids[i]).style.color = "yellow";
+		}
+	}else if (theme == "starwars"){
+		actualtheme = "starwars";
+		document.body.style.background = "url(themes/starwars/starwarsbg.png) no-repeat center center fixed";
+		document.body.style.fontFamily = "starwars";
+		document.body.style.fontSize = "15px";
+		document.body.style.color = "yellow";
+		for (i=0;i<2;i++){
+			document.getElementById(ids[i]).style.fontSize = "15px";
+			document.getElementById(ids[i]).style.fontFamily = "starwars";
+			document.getElementById(ids[i]).style.color = "yellow";
+		}
+	}
+	for (i=1;i<pass;i++){
+		ael = document.getElementById("a" + i);
+		elem = ael.firstChild;
+		if (elem.alt == "scettro"){
+			ael.innerHTML = "<img alt='scettro' src='themes/" + actualtheme + "/scettro.png' >";
+		}else if (elem.alt == "cuore"){
+			ael.innerHTML = "<img alt='cuore' src='themes/" + actualtheme + "/cuore.png' >";
+		}else{
+			ael.innerHTML = "<img alt='pallino' src='themes/" + actualtheme + "/pallino.png' >";
+		}
+		if (i % 4 == 0 && i > 4) {
+			rig = document.getElementById("r" + i);
+			rig.innerHTML = "<img src='themes/" + actualtheme + "/riga.png' style='width:400%; height:1px; margin-bottom:20px' >";
+		}
+	}
+}
+
+function sortnumber(a,b){
+	return a - b;
+}
+
+function multisort(mano){
+	v = [[],[],[],[]];
+	m = [];
+	for (i=0;i<mano.length;i++){
+		v[mano[i].seme-1].push(mano[i].valore);
+	}
+	for (i=0;i<4;i++){
+		v[i].sort(sortnumber);
+	}
+	for (i=0;i<4;i++){
+		for (j=0;j<v[i].length;j++){
+			m.push({seme:i+1, valore:v[i][j]});
+		}
+	}
+	return m;
+}
+
+function clickcard(a,b){
+	if (fase == "pass"){
+		carta = {seme:a, valore:b};
+		ind = -1;
+		for (i=0;i<passate.length;i++){
+			if (passate[i].seme == a && passate[i].valore == b){
+				ind = i;
+			}
+		}
+		if (ind == -1 && passate.length < 3){
+			passate.push(carta);
+			document.getElementById(carta.seme + "," + carta.valore).style.marginTop = "-30px";
+		}else if (ind != -1){
+			passate.splice(ind,1);
+			document.getElementById(carta.seme + "," + carta.valore).style.marginTop = "0px";
+		}
+		if (passate.length == 3){
+			document.getElementById("passa").style.border = "2px solid black";
+			document.getElementById("passa").disabled = false;
+		}else{
+			document.getElementById("passa").style.border = "none";
+			document.getElementById("passa").disabled = true;
+		}
+	}else if (fase == "turno" && tocca && legal(a,b,tavolo,mano,broken)){
+		socket.send(JSON.stringify({nome:name, seme:a, valore:b, id:idtable}));
+	}
+}
+
+function legal(a,b,tavolo,mano,broken){
+	if (a == 1 && b == 2){
+		return true;
+	}else if (tavolo.length > 0 && a == tavolo[0].seme){
+		return true;
+	}else if (tavolo.length > 0 && tavolo[0].seme == 1 && tavolo[0].valore == 2 && (a != 4 || !(a == 2 && b == 12))){
+		f = 0;
+		for (i=0;i<13;i++){
+			if (mano[i].seme == 1){
+				f = 1;
+				break;
+			}
+		}
+		if (f == 0){
+			return true;
+		}
+	}else if (tavolo.length > 0 && a != tavolo[0].seme){
+		s = 0;
+		for (i=0;i<mano.length;i++){
+			if (mano[i].seme == tavolo[0].seme){
+				s = 1;
+				break;
+			}
+		}
+		if (s == 0){
+			return true;
+		}
+	}else if (tavolo.length == 0 && broken){
+		return true;
+	}else if (tavolo.length == 0 && !broken && a == 4){
+		c = 1;
+		for (i=0;i<mano.length;i++){
+			if (mano[i].seme != 4){
+				c = 0;
+				break;
+			}
+		}
+		if (c == 1){
+			return true;
+		}
+	}else if (tavolo.length == 0 && !broken && (a != 1 || b != 2) && (mano[0].seme != 1 || mano[0].valore != 2)){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+function keypress(e) {
+	if (e && e.keyCode == 13 && $("#chatmsg").val() != "") {
+		msg = $("#chatmsg").val();
+		document.getElementById("chatmsg").value = "";
+		socket.send(JSON.stringify({nome:name, text:msg, id:idtable}));
+		document.getElementById("chatmsg").focus();
+	}
+	return false;
+}
+
+function refresh(){
+	onlinestring = "";
+	tableids = [];
+	iCreate = false;
+	intable = 0;
+	idtable = 0;
+	fase = "pass";
+	pass = 0;
+	mano = [];
+	passate = [];
+	ricevute = [];
+	tavolo = [];
+	tocca = false;
+	toccaux = false;
+	broken = false;
+	primo = -1;
+	giocate = 0;
+	partials = [0,0,0,0];
+	totals = [0,0,0,0];
+	donna = -1;
+	ultimamano = [];
+	actualtheme = "default";
+	document.body.className = "bodyenter";
+	document.getElementById("main").style.display = "none";
+	document.getElementById("enter").style.display = "block";
+	document.getElementById("statsframe").style.display = "none";
+	document.getElementById("profiloframe").style.display = "none";
+	document.getElementById("regoleframe").style.display = "none";
+	document.getElementById("newtable").style.display = "block";
+	$("#tavolist").html("");
+	$("#msg2").html("");
+	$("#stats").html("<tr><td class='firstats' onclick='sortBy(0)'>Nickname</td><td class='firstats' onclick='sortBy(1)'>Vinte</td><td class='firstats' onclick='sortBy(2)'>Perse</td><td class='firstats' onclick='sortBy(3)'>Giocate</td><td class='firstats' onclick='sortBy(4)'>% vittorie</td></tr>");
+	socket.send(JSON.stringify({username:name, password:passwd}));
+}
+
+// documentready //
+
+$(document).ready(function(){
+	document.getElementById("registrate").style.display = "none";
+	document.getElementById("enter").style.display = "none";
+	document.getElementById("main").style.display = "none";
+	document.getElementById("tavoli").style.backgroundColor = "lightgoldenrodyellow";
+	document.getElementById("tavoli").style.backgroundImage= "url(img/tavoli.png)";
+	$("#tavoliframe").css("height",(window.innerHeight-50));
+	$("#profiloframe").css("height",(window.innerHeight-18));
+	$("#statsframe").css("height",(window.innerHeight-18));
+	$("#regoleframe").css("height",(window.innerHeight-18));
+	$("#onlineside").css("height",(window.innerHeight-37));
+	$(window).resize(function() {
+		$("#tavoliframe").css("height",(window.innerHeight-50));
+		$("#profiloframe").css("height",(window.innerHeight-18));
+		$("#statsframe").css("height",(window.innerHeight-18));
+		$("#regoleframe").css("height",(window.innerHeight-18));
+		$("#onlineside").css("height",(window.innerHeight-37));
+		$("#chatbox").css("height",window.innerHeight-98);
+		$("#carte").css("margin-top",(window.innerHeight-542)/2);
+		for (i=0;i<mano.length;i++) {
+			card = document.getElementById(mano[i].seme + "," + mano[i].valore);
+			border = "";
+			for (j=0;j<passate.length;j++){
+				if (passate[j].seme == mano[i].seme && passate[j].valore == mano[i].valore){
+					border = " margin-top: -30px";
+				}
+			}
+			for (j=0;j<ricevute.length;j++){
+				if (ricevute[j].seme == mano[i].seme && ricevute[j].valore == mano[i].valore){
+					border = " margin-top: -30px";
+				}
+			} 
+			card.setAttribute("style","position: fixed; left: 0; margin-left:" + (window.innerWidth*(26-mano.length+2*i)/50 - 40) + "px;" + border);
+		}
+	});
+	$("#loginbutton").click( function(){
+		name = $("#username").val();
+		passwd = $("#password").val();
+		if (name == ""){
+			$("#msg").html("Il campo <i>username</i> non pu&#242; essere vuoto.");
+		}else if (passwd == ""){
+			$("#msg").html("Inserisci la password.");
+		}else{
+			$("#msg").html("");
+    		socket.send(JSON.stringify({username:name, password:passwd}));
+    	}
+	});
+	$("#regbutton").click( function(){
+		userreg = $("#userreg").val();
+		passreg = $("#passreg").val();
+		passregconf = $("#passregconf").val();
+		if (userreg == ""){
+			$("#msg").html("Scegli uno username.");
+		}else if (userreg.indexOf("&") != -1 || userreg.indexOf("?") != -1 || userreg.indexOf("\'") != -1 || userreg.indexOf("\"") != -1){
+			$("#msg").html("Hai inserito un carattere non valido.");
+		}else if (userreg.length > 15){
+			$("#msg").html("Lo username non deve superare i 15 caratteri.");
+		}else if (userreg.length < 3){
+			$("#msg").html("Lo username deve avere almeno 3 caratteri.");
+		}else if (passreg == ""){
+			$("#msg").html("Scegli una password.");
+		}else if (passreg != passregconf){
+			$("#msg").html("La password non coincide.");
+    	}else{
+    		$("#msg").html("");
+    		socket.send(JSON.stringify({userreg:userreg, passreg:passreg}));
+    	}
+	});
+	$("#newpwdbut").click( function(){
+		newpwd = $("#newpwd").val();
+		newpwdconf = $("#newpwdconf").val();
+		if (newpwd.indexOf("\"") != -1 || newpwd.indexOf("\'") != -1){
+			$("#pwdmsg").html("Hai inserito un carattere non valido.");
+		}else if (newpwd == ""){
+			$("#pwdmsg").html("Scegli una password.");
+		}else if (newpwd != newpwdconf){
+			$("#pwdmsg").html("La password non coincide.");
+    	}else{
+    		$("#pwdmsg").html("Password cambiata con successo.");
+    		$("#newpwd").val("");
+			$("#newpwdconf").val("");
+    		document.getElementById("pwdreinsert").style.display = "none";
+    		socket.send(JSON.stringify({usrnewpwd:name, newpwd:newpwd}));
+    	}
+    	document.getElementById("pwdmsg").style.display = "block";
+	});
+	$("#cancelnewpwd").click( function(){
+		$("#newpwd").val("");
+		$("#newpwdconf").val("");
+   		document.getElementById("pwdreinsert").style.display = "none";
+   		document.getElementById("pwdmsg").style.display = "none";
+	});
+	
+	// ajax di gioco //
+	
+	$("#passa").click(function(){
+		socket.send(JSON.stringify({nome:name, passate:passate, id:idtable}));
+		document.getElementById("passa").style.display = "none";
+		$("#msg2").html("Attendi...<br>");
+		fase = "wait";
+	});
+	$("#viste").click(function(){
+		document.getElementById("viste").style.display = "none";
+		$("#msg2").html("Attendi...<br>");
+		socket.send(JSON.stringify({viste:1, id:idtable}));
+		passate = [];
+		ricevute = [];
+	});
+	$("#closebutton").click(function(){
+		socket.send(JSON.stringify({chiudo:name, id: idtable}));
+		refresh();
+	});
+
+	socket.onmessage = function(event){
+		console.log(event.data);
+		msg = JSON.parse(event.data);
+		if (msg.userregerror != undefined && msg.userregerror == 1){
+			$("#msg").html("Il nome che hai scelto &#232; gi&#224; in uso.");
+		}else if (msg.userregerror != undefined){
+			document.getElementById("registrate").style.display = "none";
+			document.getElementById("loginform").style.display = "block";
+			$("#msg").html("Account creato con successo.");
+			name = userreg;
+		}else if (msg.userlogerror != undefined && msg.userlogerror == 1){
+			$("#msg").html("Username non esistente o password sbagliata.");
+		}else if (msg.userlogerror != undefined){
+			$("#msg").html("Sei gi&#224; loggato.");
+		}else if (msg.userlogout != undefined && msg.userlogout != ""){
+			onlinestring = onlinestring.replace("<br>" + msg.userlogout,"");
+			$("#onlines").html(onlinestring);
+			if (msg.table != 0){
+				$("#" + msg.table).remove();
+				ind = tableids.indexOf(msg.table);
+				tableids.splice(ind,1);
+				if (tableids.length == 0){
+					document.getElementById("tavolistfirst").style.display = "none";
+				}
+				if (intable == msg.table){
+					for (i=0;i<tableids.length;i++){
+						div = document.getElementById("bt" + tableids[i]);
+						par = div.parentNode;
+						par.removeChild(div);
+						par.innerHTML += "<td class='btd' id='bt" + tableids[i] + "' onclick='javascript:inTable(" + tableids[i] + ")'>Entra</td>";
+					}
+					document.getElementById("newtable").style.display = "block";
+				}
+			}else if (msg.id != 0){
+				if (document.getElementById("s" + msg.id).innerHTML == msg.userlogout){
+					terzo = document.getElementById("t" + msg.id).innerHTML;
+					$("#s" + msg.id).html(terzo);
+					$("#t" + msg.id).html("");
+				}else if (document.getElementById("t" + msg.id).innerHTML == msg.userlogout){
+					$("#t" + msg.id).html("");
+				}else if (document.getElementById("q" + msg.id).innerHTML == msg.userlogout){
+					$("#q" + msg.id).html("");
+				}
+			}
+		}else if (msg.userlogin != undefined){
+			if (msg.userlogin == name){
+				document.getElementById("enter").style.display = "block";
+				document.getElementById("loginform").style.display = "none";
+				document.getElementById("statsframe").style.display = "none";
+				document.getElementById("profiloframe").style.display = "none";
+				document.getElementById("regoleframe").style.display = "none";
+				$("#usrnm").html(name);
+				$("#psswd").html("");
+				for (i=0;i<msg.pwd;i++){
+					$("#psswd").append("*");
+				}
+				for (i=0;i<msg.onlines.length;i++){
+					onlinestring += "<br>" + msg.onlines[i];
+				}
+				$("#onlines").html(onlinestring);
+				for (i=0;i<msg.tavoli.length;i++){
+					tableids.push(msg.tavoli[i].id);
+					$("#tavolist").append("<tr id=" + msg.tavoli[i].id + "><td class='ttd' id='p" + msg.tavoli[i].id + "'>" + msg.tavoli[i].pl1 + "</td><td class='ttd' id='s" + msg.tavoli[i].id + "'>" + msg.tavoli[i].pl2 + "</td><td class='ttd' id='t" + msg.tavoli[i].id + "'>" + msg.tavoli[i].pl3 + "</td><td class='ttd' id='q" + msg.tavoli[i].id + "'>" + msg.tavoli[i].pl4 + "</td><td class='btd' id='bt" + msg.tavoli[i].id + "' onclick='javascript:inTable(" + msg.tavoli[i].id + ")'>Entra</td></tr>");
+				}
+				if (tableids.length == 0){
+					document.getElementById("tavolistfirst").style.display = "none";
+				}
+				for (i=0;i<msg.stats.length;i++){
+					$("#stats").append("<tr><td>" + msg.stats[i].nome + "</td><td>" + msg.stats[i].vinte + "</td><td>" + msg.stats[i].perse + "</td><td>" + msg.stats[i].giocate + "</td><td>" + msg.stats[i].perc + "</td></tr>");
+				}
+			}
+			onlinestring += "<br>" + msg.userlogin;
+			$("#onlines").html(onlinestring);
+		}else if (msg.newtable != undefined){
+			if (msg.newtable != name && !iCreate && intable == 0){
+				str = " onclick='javascript:inTable(" + msg.id + ")'>Entra";
+			}else if (msg.newtable == name){
+				iCreate = true;
+				intable = msg.id;
+				for (i=0;i<tableids.length;i++){
+					document.getElementById("bt" + tableids[i]).style.display = "none";
+				}
+				str = " onclick='javascript:destroyTable(" + msg.id + ")'>Chiudi";
+			}else{
+				str = " style='display:none'>";
+			}
+			document.getElementById("tavolistfirst").style.display = "table";
+			$("#tavolist").append("<tr id=" + msg.id + "><td class='ttd' id='p" + msg.id + "'>" + msg.newtable + "</td><td class='ttd' id='s" + msg.id + "'></td><td class='ttd' id='t" + msg.id + "'></td><td class='ttd' id='q" + msg.id + "'></td><td class='btd' id='bt" + msg.id + "'" + str + "</td></tr>");
+			tableids.push(msg.id);
+		}else if (msg.entertable != undefined){
+			if (msg.ind == 2){
+				$("#s" + msg.id).html(msg.entertable);
+			}else if (msg.ind == 3){
+				$("#t" + msg.id).html(msg.entertable);
+			}else if (msg.id != intable){
+				primo = document.getElementById("p" + msg.id).innerHTML;
+				secondo = document.getElementById("s" + msg.id).innerHTML;
+				terzo = document.getElementById("t" + msg.id).innerHTML;
+				quarto = document.getElementById("q" + msg.id).innerHTML;
+				onlinestring.replace("<br>" + primo,"");
+				onlinestring.replace("<br>" + secondo,"");
+				onlinestring.replace("<br>" + terzo,"");
+				onlinestring.replace("<br>" + quarto,"");
+				$("#onlines").html(onlinestring);
+				$("#" + msg.id).remove();
+			}
+		}else if (msg.awayfromtable != undefined){
+			if (msg.ind == 2){
+				terzo = document.getElementById("t" + msg.id).innerHTML;
+				$("#s" + msg.id).html(terzo);
+				$("#t" + msg.id).html("");
+			}else if (msg.ind == 3){
+				$("#t" + msg.id).html("");
+			}else{
+				$("#q" + msg.id).html("");
+			}
+			if (msg.awayfromtable == name){
+				intable = 0;
+				for (i=0;i<tableids.length;i++){
+					div = document.getElementById("bt" + tableids[i]);
+					par = div.parentNode;
+					par.removeChild(div);
+					par.innerHTML += "<td class='btd' id='bt" + tableids[i] + "' onclick='javascript:inTable(" + tableids[i] + ")'>Entra</td>";
+				}
+				document.getElementById("newtable").style.display = "block";
+			}
+		}else if (msg.destroytable != undefined){
+			ind = tableids.indexOf(msg.destroytable);
+			tableids.splice(ind,1);
+			if (tableids.length == 0){
+				document.getElementById("tavolistfirst").style.display = "none";
+			}
+			if (document.getElementById("p" + msg.destroytable).innerHTML == name){
+				iCreate = false;
+				intable = 0;
+				for (i=0;i<tableids.length;i++){
+					div = document.getElementById("bt" + tableids[i]);
+					par = div.parentNode;
+					par.removeChild(div);
+					par.innerHTML += "<td class='btd' id='bt" + tableids[i] + "' onclick='javascript:inTable(" + tableids[i] + ")'>Entra</td>";
+				}
+				document.getElementById("newtable").style.display = "block";
+			}else if (document.getElementById("s" + msg.destroytable).innerHTML == name || document.getElementById("t" + msg.destroytable).innerHTML == name){
+				intable = 0;
+				for (i=0;i<tableids.length;i++){
+					div = document.getElementById("bt" + tableids[i]);
+					par = div.parentNode;
+					par.removeChild(div);
+					par.innerHTML += "<td class='btd' id='bt" + tableids[i] + "' onclick='javascript:inTable(" + tableids[i] + ")'>Entra</td>";
+				}
+				document.getElementById("newtable").style.display = "block";
+			}
+			$("#" + msg.destroytable).remove();
+		}else if (msg.wantstats != undefined){
+			$("#stats").html("<tr><td class='firstats' onclick='sortBy(0)'>Nickname</td><td class='firstats' onclick='sortBy(1)'>Vinte</td><td class='firstats' onclick='sortBy(2)'>Perse</td><td class='firstats' onclick='sortBy(3)'>Giocate</td><td class='firstats' onclick='sortBy(4)'>% vittorie</td></tr>");
+			for (i=0;i<msg.wantstats.length;i++){
+				$("#stats").append("<tr><td>" + msg.wantstats[i].nome + "</td><td>" + msg.wantstats[i].vinte + "</td><td>" + msg.wantstats[i].perse + "</td><td>" + msg.wantstats[i].giocate + "</td><td>" + msg.wantstats[i].perc + "</td></tr>");
+			}
+			
+		// gioco vero e proprio //
+			
+		}else if (msg.beginplayers != undefined){
+			document.getElementById("enter").style.display = "none";
+			document.getElementById("main").style.display = "block";
+			document.getElementById("carte").style.display = "block";
+			document.getElementById("viste").style.display = "none";
+			document.getElementById("closebutton").style.display = "none";
+			document.getElementById("chatmsg").focus();
+			$("#chatbox").css("height",window.innerHeight-98);
+			$("#carte").css("margin-top",(window.innerHeight-542)/2);
+			document.body.className = "bodygame";
+			idtable = msg.id;
+			players = msg.beginplayers;
+			ind = players.indexOf(name);
+			document.getElementById("estname").style.display = "block";
+    		document.getElementById("ovestname").style.display = "block";
+    		document.getElementById("nordname").style.display = "block";
+    		document.getElementById("sudname").style.display = "block";
+			$("#ovestname").html(players[(ind+1)%4]);
+			$("#nordname").html(players[(ind+2)%4]);
+			$("#estname").html(players[(ind+3)%4]);
+			$("#sudname").html(name);
+			$("#scores").html("");
+			$("#scores").append("<tr><td>" + players[0] + "  </td><td>" + players[1] + "  </td><td>" + players[2] + "  </td><td>" + players[3] + "</td></tr>" );
+		}else if (msg.carte != undefined){
+			pass++;
+			mano = msg.carte;
+			$("#carte").html("");
+			$("#msg2").html("");
+			for (i=0;i<13;i++){
+				$("#carte").append("<a id='" + mano[i].seme + "," + mano[i].valore + "' href='javascript:clickcard(" +  mano[i].seme + "," + mano[i].valore + ");' style='position: fixed; left: 0; margin-left:" + (window.innerWidth*(26-mano.length+2*i)/50 - 40) + "px'><img class='card' src='carte/[" + mano[i].seme + ", " + mano[i].valore + "].png' width='79' height='123' ></a>");
+			}
+			if (pass % 4 == 1){
+				fase = "pass";
+				document.getElementById("passa").style.display = "block";
+				document.getElementById("passa").disabled = true;
+				document.getElementById("passa").style.border = "none";
+				document.getElementById("passa").innerHTML = "Passa a sinistra";
+			}else if (pass % 4 == 2){
+				fase = "pass";
+				document.getElementById("passa").style.display = "block";
+				document.getElementById("passa").disabled = true;
+				document.getElementById("passa").style.border = "none";
+				document.getElementById("passa").innerHTML = "Passa a destra";
+			}else if (pass % 4 == 3){
+				fase = "pass";
+				document.getElementById("passa").style.display = "block";
+				document.getElementById("passa").disabled = true;
+				document.getElementById("passa").style.border = "none";
+				document.getElementById("passa").innerHTML = "Passa di fronte";
+			}else{
+				fase = "turno";
+				if (mano[0].seme == 1 && mano[0].valore == 2){
+					tocca = true;
+				}
+			}
+		}else if (msg.passate != undefined){
+			$("#msg2").html("");
+			ricevute = msg.passate;
+			for (i=0;i<3;i++){
+				for (j=0;j<13;j++){
+					if (mano[j].seme == passate[i].seme && mano[j].valore == passate[i].valore){
+						mano.splice(j,1);
+						break;
+					}
+				}
+			}
+			for (i=0;i<3;i++){
+				mano.push(ricevute[i]);
+			}
+			mano = multisort(mano);
+			$("#carte").html("");
+			for (i=0;i<13;i++){
+				op = "";
+				for (j=0;j<3;j++){
+					if (mano[i].seme == ricevute[j].seme && mano[i].valore == ricevute[j].valore){
+						op = " margin-top: -30px";
+					}
+				}
+				str = "<a id='" + mano[i].seme + "," + mano[i].valore + "' href='javascript:clickcard(" +  mano[i].seme + "," + mano[i].valore + ");' style='position: fixed; left:" + (window.innerWidth*(26-mano.length+2*i)/50 - 40) + "px;" + op + "'><img class='card' src='carte/[" + mano[i].seme + ", " + mano[i].valore + "].png' width='79' height='123' ></a>";
+				$("#carte").append(str);
+			}
+    		document.getElementById("viste").style.display = "block";
+    	}else if (msg.viste != undefined){
+    		$("#msg2").html("");
+    		fase = "turno";
+    		for (i=0;i<13;i++){
+				document.getElementById(mano[i].seme + "," + mano[i].valore).style.marginTop = "0px";
+			}
+    		if (mano[0].seme == 1 && mano[0].valore == 2){
+				tocca = true;
+			}
+    	}else if (msg.seme != undefined){
+			ind = players.indexOf(msg.nome);
+			mioind = players.indexOf(name);
+			if (tavolo.length == 0){
+				primo = ind;
+			}
+			if (ind == (mioind + 1) % 4){
+				$("#ovest").html("<img id='ovestcard' src='carte/[" + msg.seme + ", " + msg.valore + "].png'>");
+			}else if (ind == (mioind + 2) % 4){
+				$("#nord").html("<img id='nordcard' src='carte/[" + msg.seme + ", " + msg.valore + "].png'>");
+			}else if (ind == (mioind + 3) % 4){
+				$("#est").html("<img id='estcard' src='carte/[" + msg.seme + ", " + msg.valore + "].png'>");
+				if (tavolo.length < 3){
+					tocca = true;
+				}
+			}else{
+				div = document.getElementById(msg.seme + "," + msg.valore);
+				div.parentNode.removeChild(div);
+				$("#sud").html("<img id='sudcard' src='carte/[" + msg.seme + ", " + msg.valore + "].png'>");
+				for (i=0;i<mano.length;i++){
+					if (mano[i].seme == msg.seme && mano[i].valore == msg.valore){
+						mano.splice(i,1);
+						break;
+					}
+				}
+				for (i=0;i<mano.length;i++) {
+					card = document.getElementById(mano[i].seme + "," + mano[i].valore);
+					card.setAttribute("style","position: fixed; left: 0; margin-left:" + (window.innerWidth*(26-mano.length+2*i)/50 - 40) + "px;");
+				}
+				tocca = false;
+			}
+			giocate++;
+			tavolo.push({seme:msg.seme, valore:msg.valore});
+			if (tavolo.length == 4){
+				wincard = tavolo[0];
+				for (i=1;i<4;i++){
+					if (tavolo[i].seme == wincard.seme && tavolo[i].valore > wincard.valore){
+						wincard = tavolo[i];
+					}
+				}
+				indintav = tavolo.indexOf(wincard);
+				indwinner = (indintav + primo) % 4;
+				if (indwinner == players.indexOf(name)){
+					toccaux = true;
+				}
+				pts = 0;
+				for (i=0;i<4;i++){
+					if (tavolo[i].seme == 4){
+						broken = true;
+						pts++;
+					}else if (tavolo[i].seme == 2 && tavolo[i].valore == 12){
+						pts = pts + 13;
+					}
+				}
+				partials[indwinner] = partials[indwinner] + pts;
+				if (pts > 12){
+					donna = indwinner;
+				}
+				
+				setTimeout( function() {
+					marginovestleft = 0;
+					marginestright = 0;
+					marginnordright = 0;
+					marginnordtop = 0;
+					marginsudtop = 0;
+					marginesttop = 0;
+					spaceor = 273;
+					spacever = 259;
+					ovest = document.getElementById("ovest");
+					est = document.getElementById("est");
+					nord = document.getElementById("nord");
+					sud = document.getElementById("sud");
+					nordcard = document.getElementById("nordcard");
+					sudcard = document.getElementById("sudcard");
+					timer = setInterval( function() {
+						if (indwinner == (mioind + 1) % 4) {
+							spaceor = 110;
+							marginovestleft -= 10;
+							marginestright += 25;
+							marginnordright += 34;
+							marginnordtop += 6;
+							marginsudtop -= 6;
+						}else if (indwinner == (mioind + 3) % 4) {
+							marginovestleft += 25;
+							marginestright -= 10;
+							marginnordright -= 34;
+							marginnordtop += 6;
+							marginsudtop -= 6;
+						}else if (indwinner == (mioind + 2) % 4) {
+							spacever = 129;
+							marginovestleft += 8;
+							marginestright += 8;
+							marginesttop -= 18;
+							marginnordtop -= 12;
+							marginsudtop -= 24;
+						}else{
+							marginovestleft += 8;
+							marginestright += 8;
+							marginesttop += 18;
+							marginnordtop += 24;
+							marginsudtop += 12;
+						}
+						ovest.setAttribute("style","margin-left:" + marginovestleft + "px; margin-top:" + marginesttop + "px;");
+						est.setAttribute("style","margin-right:" + marginestright + "px; margin-top:" + marginesttop + "px;");
+						nord.setAttribute("style","margin-top:" + marginnordtop + "px;");
+						sud.setAttribute("style","margin-top:" + marginsudtop + "px;");
+						nordcard.setAttribute("style","margin-right:" + marginnordright + "px;");
+						sudcard.setAttribute("style","margin-right:" + marginnordright + "px;");
+						if (Math.abs(marginovestleft) > spaceor || Math.abs(marginnordtop) > spacever) {
+							$("#ovest").html("");
+							$("#est").html("");
+							$("#nord").html("");
+							$("#sud").html("");
+							ovest.setAttribute("style","margin-right: 0px; margin-top: 0px");
+							est.setAttribute("style","margin-left: 0px; margin-top: 0px");
+							nord.setAttribute("style","margin-top: 0px;");
+							sud.setAttribute("style","margin-top: 0px;");
+							socket.send(JSON.stringify({clear:0, id:idtable}));
+							clearInterval(timer);
+						}
+					}, 8);
+				}, 1);
+			}
+    	}else if (msg.clear != undefined){
+    		ultimamano = tavolo;
+			tavolo = [];
+			if (giocate == 52){
+				gif = ["","","",""];
+				hearts = -1;
+				for (i=0;i<4;i++){
+					if (partials[i] == 25){
+						gif[i] = " <a id='a" + pass + "'><img alt='scettro' src='themes/" + actualtheme + "/scettro.png' ></a>";
+					}else if (partials[i] == 26){
+						gif[i] = " <a id='a" + pass + "'><img alt='cuore' src='themes/" + actualtheme + "/cuore.png' ></a>"
+						hearts = i;
+						break;
+					}else if (donna == i){
+						gif[i] = " <a id='a" + pass + "'><img alt='pallino' src='themes/" + actualtheme + "/pallino.png' ></a>";
+						donna = -1;
+					}
+					totals[i] = totals[i] + partials[i];
+				}
+				if (hearts != -1){
+					for (i=0;i<4;i++){
+						if (i != hearts){
+							totals[i] = totals[i] + 26;
+						}
+					}
+				}
+				$("#scores").append("<tr><td>" + totals[0] + gif[0] +"</td><td>" + totals[1] + gif[1] + "</td><td>" + totals[2] + gif[2] + "</td><td>" + totals[3] + gif[3] + "</td></tr>" );
+				massimo = Math.max(totals[0],totals[1],totals[2],totals[3]);
+				if (massimo > 10){
+					minimo = Math.min(totals[0],totals[1],totals[2],totals[3]);
+					m = 0;
+					for (i=0;i<4;i++){
+						if (totals[i] == minimo){
+							m++;
+						}
+					}
+					if (m<2){
+						chind = totals.indexOf(minimo);
+						chi = players[chind];
+						if (chi == name){
+							socket.send(JSON.stringify({vinto:name, id:idtable}));
+						}
+					}else{
+						if (pass % 4 == 0){
+							$("#scores").append("<tr><td id='r" + pass + "'><img src='themes/" + actualtheme + "/riga.png' style='width:400%; height:1px; margin-bottom:20px' ></td></tr>");
+						}
+						giocate = 0;
+						broken = false;
+						partials = [0,0,0,0];
+						socket.send(JSON.stringify({ready:0, id:idtable}));
+					}
+				}else{
+					if (pass % 4 == 0){
+						$("#scores").append("<tr><td id='r" + pass + "'><img src='themes/" + actualtheme + "/riga.png' style='width:400%; height:1px; margin-bottom:20px' ></td></tr>");
+					}
+					giocate = 0;
+					broken = false;
+					partials = [0,0,0,0];
+					socket.send(JSON.stringify({ready:0, id:idtable}));
+				}
+			}else if (toccaux){
+    			tocca = true;
+    			toccaux = false;
+    		}
+    	}else if (msg.vinto != undefined){
+    		if (msg.vinto == name){
+    			$("#msg2").html("Hai vinto!<br>");
+    		}else{
+    			$("#msg2").html(msg.vinto + " vince!<br>");
+    		}
+    		document.getElementById("estname").style.display = "none";
+    		document.getElementById("ovestname").style.display = "none";
+    		document.getElementById("nordname").style.display = "none";
+    		document.getElementById("sudname").style.display = "none";
+    		document.getElementById("closebutton").style.display = "block";
+    	}else if (msg.text != undefined){
+			$("#welcome").append("<a><div><b>" + msg.nome + ":</b> " + msg.text + "</div></a>");
+		}else if (msg.uscito != undefined){
+			$("#msg2").append(msg.uscito + " ha abbandonato la partita.<br>");
+			document.getElementById("estname").style.display = "none";
+    		document.getElementById("ovestname").style.display = "none";
+    		document.getElementById("nordname").style.display = "none";
+    		document.getElementById("sudname").style.display = "none";
+    		document.getElementById("carte").style.display = "none";
+    		document.getElementById("passa").style.display = "none";
+    		document.getElementById("viste").style.display = "none";
+			document.getElementById("closebutton").style.display = "block";
+		}
+	};
+	
+});
+
+</script>
+</head>
+
+<body class="bodyenter">
+	<div id="msg"></div>
+	
+	<form id="loginform">
+		<a style="font-size: 25px; text-decoration: underline;">Login:</a>
+		<p>Username: <input type="text" class="textenter" id="username" /></p>
+		<p>Password: <input type="password" class="textenter" id="password" /></p>
+		<input type="button" id="loginbutton" class="enterbutton" value="Login" />
+		<p>oppure <a href="javascript:createAccount()" style="color:cadetblue">crea un account</a></p>
+	</form>
+	
+	<form id="registrate" style="text-align:center">
+		<p style="font-size: 25px; text-decoration: underline;">Creazione nuovo account:</p>
+		<table style="margin:auto">
+			<tr><td>Scegli uno username:</td><td><input type="text" class="textenter" id="userreg" /></td></tr>
+			<tr><td>Scegli una password:</td><td><input type="password" class="textenter" id="passreg" /></td></tr>
+			<tr><td>Reinserisci la password:</td><td><input type="password" class="textenter" id="passregconf" /></td></tr>
+		</table>
+		<p><input type="button" id="regbutton" class="enterbutton" value="Crea Account" /></p>
+		<p>oppure <a href="javascript:backToLogin()" style="color:cadetblue">torna al Login</a></p>
+	</form>
+	
+	<div id="enter">
+		<table id="leftcolumn">
+			<tr><td class="ltd" id="tavoli" onclick="javascript:show('tavoli')">Tavoli</td></tr>
+			<tr><td class="ltd" id="statistiche" onclick="javascript:show('statistiche')">Statistiche</td></tr>
+			<tr><td class="ltd" id="profilo" onclick="javascript:show('profilo')">Profilo</td></tr>
+			<tr><td class="ltd" id="regole" onclick="javascript:show('regole')">Regole</td></tr>
+			<tr><td class="ltd" id="esci" onclick="location.href = './'">Logout</td></tr>
+		</table>
+	
+		<div id="onlineside">
+			<a>Giocatori disponibili:</a><br>
+			<a id="onlines"></a>
+		</div>
+	
+		<div id="tavoliframe">
+			<table id="tavolistfirst">
+				<tr><td class="ptd">Giocatore 1</td><td class="ptd">Giocatore 2</td><td class="ptd">Giocatore 3</td><td class="ptd">Giocatore 4</td><td class="ptd" style="border-bottom: 0"></td></tr>
+			</table>
+			<table id="tavolist"></table>
+			<p id="newtable" onclick="newTable()" style="margin-top:20px">Crea un nuovo tavolo</p>
+		</div>
+		
+		<div id="statsframe">
+			<table id="stats"><tr><td class="firstats" onclick="sortBy(0)">Nickname</td><td class="firstats" onclick="sortBy(1)">Vinte</td><td class="firstats" onclick="sortBy(2)">Perse</td><td class="firstats" onclick="sortBy(3)">Giocate</td><td class="firstats" onclick="sortBy(4)">% vittorie</td></tr></table>
+		</div>
+	
+		<div id="profiloframe">
+			<table><tr><td>Username: </td><td id="usrnm"></td></tr></table>
+			<table><tr><td>Password: </td><td id="psswd"></td><td style="padding-left:30px"><a href="javascript:changePwd()" style="color:cadetblue">cambia password</a></td></tr></table>
+			<div id="pwdreinsert">
+				<table>
+					<tr><td>Scegli una nuova password:</td><td><input type="password" class="textenter" id="newpwd" /></td></tr>
+					<tr><td>Reinserisci la password:</td><td><input type="password" class="textenter" id="newpwdconf" /></td></tr>
+				</table>
+				<table><tr>
+					<td><input type="button" id="cancelnewpwd" class="enterbutton" value="Annulla" /></td>
+					<td><input type="button" id="newpwdbut" class="enterbutton" value="Conferma" /></td>
+				</tr></table>
+			</div>
+			<a id="pwdmsg"></a>
+		</div>
+		
+		<div id="regoleframe"><p>Si gioca in 4 con un mazzo da 52 carte. La scala dei valori delle carte va dal 2 all'asso. Lo scopo di ogni giocatore consiste nel fare meno punti possibili. I punti si contano alla seguente maniera: ogni carta di cuori vale un punto; la donna di picche vale 13 punti.</p>Vengono distribuite 13 carte a testa. Ogni giocatore sceglie 3 carte da passare al giocatore alla sua sinistra e ne riceve a sua volta 3 dal giocatore alla sua destra. Il passaggio avviene contemporaneamente da parte di tutti i giocatori.<br>Una volta scambiate le carte, comincia il giocatore che ha in mano il 2 di fiori giocando questa carta. In senso orario, gli altri giocatori giocano di seguito rispondendo a seme. Se non si ha in mano carte di quel seme si pu&#242; giocare qualsiasi altra carta (fatta eccezione per la prima mano del turno, in cui non si possono giocare carte che valgono punti). Una volta che tutti e quattro i giocatori hanno fatto la loro giocata, chi ha giocato la carta pi&#249; alta del seme che comanda prende le quattro carte in tavola e il gioco passa a lui. Questo giocatore non pu&#242; giocare una carta di cuori a meno che questo seme non sia stato giocato in precedenza (ad esempio "scartato" da qualcuno che non poteva rispondere a seme) oppure che non si abbia solo cuori in mano.<p>Una volta che i giocatori hanno finito le carte in mano si prosegue con il conteggio dei punti e si ridistribuiscono le carte, dando inizio a un nuovo turno. Se un giocatore ha raccolto 26 punti totali (tutte le carte di cuori e la donna a picche) "ha fatto Hearts" e gli vengono assegnati 0 punti, mentre a tutti gli altri si assegnano 26 punti.</p>Ogni volta che inizia un nuovo turno cambia il verso con cui i giocatori si scambiano le carte. La prima volta ogni giocatore passa le tre carte al giocatore alla sua sinistra (e dunque le riceve da quello alla sua destra), la seconda volta a destra, la terza volta si scambiano le carte i giocatori di fronte e infine la quarta volta non si passano le carte. Dopo la quarta volta si ricomincia partendo con il passaggio a sinistra.<p>Il gioco termina quando un giocatore supera i 100 punti. In questo caso vince la partita il giocatore che ha totalizzato il punteggio minore. Se sono pi&#249; di uno i giocatori ad avere il punteggio minore si prosegue finch&#233; rimane un solo giocatore con punteggio minimo.</p>
+		</div>
+	</div>
+	
+	<div id="main">
+		<a id="msg2"></a>
+
+		<table id="scores"></table>
+
+		<button id="passa" class="button"></button>
+		<button id="viste" class="button">ok!</button>
+		<button id="closebutton" class="button">Esci</button>
+
+		<a id="nordname"></a>
+		<a id="nord"></a>
+		<a id="ovestname"></a>
+		<a id="ovest"></a>
+		<a id="estname"></a>
+		<a id="est"></a>
+		<a id="sud"></a>
+		<a id="sudname"></a>
+
+		<div id="carte"></div>
+
+		<div id="chatbox"><div id="welcome"></div></div>
+		<input type="text" name="chatmsg" id="chatmsg" onkeypress="keypress(event)"/>
+
+		<div id="footer">
+			<a href="javascript:changetheme('default');"><img src="themes/default/preview.png" class="themel" /></a>
+			<a href="javascript:changetheme('wood');"><img src="themes/wood/preview.png" class="themel" /></a>
+			<a href="javascript:changetheme('hellokitty');"><img src="themes/hellokitty/preview.png" class="themel" /></a>
+			<a href="javascript:changetheme('umbe');"><img src="themes/comunismo/preview.png" class="themel" /></a>
+			<a href="javascript:changetheme('starwars');"><img src="themes/starwars/preview.png" class="themel" /></a>
+			<img src="img/nodejs.png" class="footel" />
+			<img src="img/html5.png" class="footel" />
+		</div>
+	</div>
+</body>
+
+</html>
