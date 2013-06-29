@@ -1,7 +1,8 @@
 hearts-websocket
 ================
 
-This is a working Hearts application using 'websocket' nodejs library. Hearts is distributed under the General Public Licence.
+This is a working Hearts application using 'websocket' nodejs library.<br>
+This software is distributed under the General Public Licence.
 
 <h3>Compile dependencies:</h3>
 

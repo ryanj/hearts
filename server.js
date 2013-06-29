@@ -14,6 +14,7 @@
 //    You should have received a copy of the GNU General Public License 
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 
+
 function shuffle(o){
 	for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
 	return o;
