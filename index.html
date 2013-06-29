@@ -124,7 +124,7 @@ function newTable(){
 // funzioni di gioco //
 
 function changetheme(theme) {
-	ids = ["passa","viste"];
+	ids = ["passa","viste","esci"];
 	if (theme == "default"){
 		actualtheme = "default";
 		document.body.style.backgroundColor = "green";
@@ -133,8 +133,10 @@ function changetheme(theme) {
 		document.body.style.backgroundPosition = "center";
 		document.body.style.fontFamily = "defaultfont";
 		document.body.style.fontSize = "23px";
+		document.getElementById("chatbox").style.fontSize = "20px";
+		document.getElementById("scores").style.fontSize = "15px";
 		document.body.style.color = "black";
-		for (i=0;i<2;i++){
+		for (i=0;i<3;i++){
 			document.getElementById(ids[i]).style.fontSize = "23px";
 			document.getElementById(ids[i]).style.fontFamily = "defaultfont";
 			document.getElementById(ids[i]).style.color = "black";
@@ -144,8 +146,10 @@ function changetheme(theme) {
 		document.body.style.background = "url(themes/wood/woodbg.png) no-repeat center center fixed";
 		document.body.style.fontFamily = "wood";
 		document.body.style.fontSize = "23px";
+		document.getElementById("chatbox").style.fontSize = "20px";
+		document.getElementById("scores").style.fontSize = "15px";
 		document.body.style.color = "peachpuff";
-		for (i=0;i<2;i++){
+		for (i=0;i<3;i++){
 			document.getElementById(ids[i]).style.fontSize = "23px";
 			document.getElementById(ids[i]).style.fontFamily = "wood";
 			document.getElementById(ids[i]).style.color = "peachpuff";
@@ -156,10 +160,13 @@ function changetheme(theme) {
 		document.body.style.backgroundImage = "url(themes/hellokitty/hellokitty.png)";
 		document.body.style.backgroundRepeat = "no-repeat";
 		document.body.style.backgroundPosition = "center";
+		document.body.style.backgroundSize = "";
 		document.body.style.fontFamily = "hellokitty";
 		document.body.style.fontSize = "23px";
+		document.getElementById("chatbox").style.fontSize = "20px";
+		document.getElementById("scores").style.fontSize = "15px";
 		document.body.style.color = "#E73136";
-		for (i=0;i<2;i++){
+		for (i=0;i<3;i++){
 			document.getElementById(ids[i]).style.fontSize = "23px";
 			document.getElementById(ids[i]).style.fontFamily = "hellokitty";
 			document.getElementById(ids[i]).style.color = "#E73136";
@@ -169,8 +176,10 @@ function changetheme(theme) {
 		document.body.style.background = "url(themes/comunismo/combg.png) no-repeat center center fixed";
 		document.body.style.fontFamily = "soviet";
 		document.body.style.fontSize = "23px";
+		document.getElementById("chatbox").style.fontSize = "20px";
+		document.getElementById("scores").style.fontSize = "15px";
 		document.body.style.color = "yellow";
-		for (i=0;i<2;i++){
+		for (i=0;i<3;i++){
 			document.getElementById(ids[i]).style.fontSize = "23px";
 			document.getElementById(ids[i]).style.fontFamily = "soviet";
 			document.getElementById(ids[i]).style.color = "yellow";
@@ -180,11 +189,27 @@ function changetheme(theme) {
 		document.body.style.background = "url(themes/starwars/starwarsbg.png) no-repeat center center fixed";
 		document.body.style.fontFamily = "starwars";
 		document.body.style.fontSize = "15px";
+		document.getElementById("chatbox").style.fontSize = "13px";
+		document.getElementById("scores").style.fontSize = "12px";
 		document.body.style.color = "yellow";
-		for (i=0;i<2;i++){
+		for (i=0;i<3;i++){
 			document.getElementById(ids[i]).style.fontSize = "15px";
 			document.getElementById(ids[i]).style.fontFamily = "starwars";
 			document.getElementById(ids[i]).style.color = "yellow";
+		}
+	}else if (theme == "giappone"){
+		actualtheme = "giappone";
+		document.body.style.background = "url(themes/giappone/jap.png) no-repeat top left fixed";
+		document.body.style.backgroundSize = "100% auto";
+		document.body.style.fontFamily = "giappone";
+		document.body.style.fontSize = "26px";
+		document.getElementById("chatbox").style.fontSize = "20px";
+		document.getElementById("scores").style.fontSize = "18px";
+		document.body.style.color = "coral";
+		for (i=0;i<3;i++){
+			document.getElementById(ids[i]).style.fontSize = "26px";
+			document.getElementById(ids[i]).style.fontFamily = "giappone";
+			document.getElementById(ids[i]).style.color = "coral";
 		}
 	}
 	for (i=1;i<pass;i++){
@@ -457,6 +482,10 @@ $(document).ready(function(){
 	});
 	$("#closebutton").click(function(){
 		socket.send(JSON.stringify({chiudo:name, id: idtable}));
+		document.body.style.background = "";
+		document.body.style.fontFamily = "";
+		document.body.style.fontSize = "";
+		document.body.style.color = "";
 		refresh();
 	});
 
@@ -627,6 +656,8 @@ $(document).ready(function(){
 			document.getElementById("carte").style.display = "block";
 			document.getElementById("viste").style.display = "none";
 			document.getElementById("closebutton").style.display = "none";
+			document.getElementById("chatbox").style.fontSize = "20px";
+			document.getElementById("scores").style.fontSize = "15px";
 			document.getElementById("chatmsg").focus();
 			$("#chatbox").css("height",window.innerHeight-98);
 			$("#carte").css("margin-top",(window.innerHeight-542)/2);
@@ -1024,6 +1055,7 @@ $(document).ready(function(){
 		<div id="footer">
 			<a href="javascript:changetheme('default');"><img src="themes/default/preview.png" class="themel" /></a>
 			<a href="javascript:changetheme('wood');"><img src="themes/wood/preview.png" class="themel" /></a>
+			<a href="javascript:changetheme('giappone');"><img src="themes/giappone/preview.png" class="themel" /></a>
 			<a href="javascript:changetheme('hellokitty');"><img src="themes/hellokitty/preview.png" class="themel" /></a>
 			<a href="javascript:changetheme('umbe');"><img src="themes/comunismo/preview.png" class="themel" /></a>
 			<a href="javascript:changetheme('starwars');"><img src="themes/starwars/preview.png" class="themel" /></a>

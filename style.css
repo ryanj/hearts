@@ -23,6 +23,11 @@
 	src: url(themes/starwars/starwars.ttf);
 }
 
+@font-face {
+	font-family: giappone;
+	src: url(themes/giappone/giappone.ttf);
+}
+
 form {
 	text-align: center;
 }
@@ -47,7 +52,6 @@ form {
 #scores {
 	text-align: center;
 	table-layout: fixed;
-	font-size: 15px;
 	width: 20%;
 	position: fixed;
 	top: 3px;
@@ -140,7 +144,6 @@ form {
 	overflow-y: auto;
 	word-wrap: break-word;
 	background-color: rgba(0,0,0,0.3);
-	font-size: 16px;
 }
 
 #chatmsg {
@@ -303,6 +306,7 @@ form {
 
 .bodyenter {
 	background-color: ghostwhite;
+	color: black;
 	font-size: 20px;
 	font-family: defaultfont;
 	text-shadow: 1px 1px ghostwhite;

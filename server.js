@@ -71,7 +71,7 @@ function sendToTable(mess,id){
 }
 
 function clean_on_exit(idtavolo,user){
-	mysql.query("update users set tavolo = 0 where username = " + user, function(err,rows,fields) {});
+	mysql.query("update users set tavolo = 0 where username = '" + user + "'", function(err,rows,fields) {});
 	ind = atb[idtavolo].players.indexOf(user);
 	atb[idtavolo].players.splice(ind,1);
 	atb[idtavolo].connections.splice(ind,1);
