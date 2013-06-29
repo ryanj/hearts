@@ -261,6 +261,12 @@ form {
 	background-color: gainsboro;
 }
 
+#git {
+	position: fixed;
+	left: 20px;
+	bottom: 20px;
+}
+
 /* classi game */
 
 .bodygame {
@@ -274,10 +280,6 @@ form {
 	overflow: hidden;
 	font-size: 23px;
 	font-family: defaultfont;
-}
-
-.footel {
-	margin: 10px;	
 }
 
 .themel {
