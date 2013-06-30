@@ -12,7 +12,7 @@ $ rm -R node_modules
 $ npm install
 </pre>
 
-<h3>Make a few changes to set ipaddr, port and database:</h3>
+<h3>Make a few changes:</h3>
 
 Change 'host', 'port' and 'mysqlpasswd' variables in <i>server.js</i><br>
 Change websocket address and port in <i>index.html</i>
