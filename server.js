@@ -17,7 +17,8 @@
 
 var host = "localhost";
 var port = 30000;
-var mysqlpasswd = "pippo";  //'g2JVud96hJ7fl';
+var mysqluser = "root";
+var mysqlpasswd = "pippo";
 
 function shuffle(o){
 	for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
@@ -69,8 +70,8 @@ WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({host:host, port:port});
 var newmysql = require('mysql');
 var mysql = newmysql.createConnection({
-	host: 'localhost',
-	user: 'root',
+	host: host,
+	user: mysqluser,
 	password : mysqlpasswd,
 });
 mysql.connect();
