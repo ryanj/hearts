@@ -70,7 +70,15 @@ var mysql = newmysql.createConnection({
 	password : 'pippo', //'g2JVud96hJ7fl',
 });
 mysql.connect();
-mysql.query("use hearts");
+mysql.query("use hearts", function(err,rows,fields){
+	if (err != null){
+		mysql.query("create database hearts");
+		mysql.query("use hearts");
+		mysql.query("create table users (id int not null auto_increment primary key, username text, password text, online int default 0, tavolo int default 0, ammonito int default 0) engine = innodb");
+		mysql.query("create table tables (id int, pl1 text, pl2 text, pl3 text, pl4 text) engine = innodb");
+		mysql.query("create table stats (nome text, giocate int default 0, vinte int default 0, perse int default 0, perc decimal(10,1) default 0) engine = innodb");
+	}
+});
 var connections = [];
 var players = [];
 var atb = new Array();
@@ -88,7 +96,7 @@ function sendToTable(mess,id){
 }
 
 function clean_on_exit(idtavolo,user){
-	mysql.query("update users set tavolo = 0 where username = '" + user + "'", function(err,rows,fields) {});
+	mysql.query("update users set tavolo = 0 where username = '" + user + "'");
 	ind = atb[idtavolo].players.indexOf(user);
 	atb[idtavolo].players.splice(ind,1);
 	atb[idtavolo].connections.splice(ind,1);
@@ -114,13 +122,13 @@ wss.on('connection', function(connection) {
 					connection.send(JSON.stringify({userregerror:1}));
 				}else{
 					connection.send(JSON.stringify({userregerror:0}));
-					mysql.query("insert into users (username,password,online,table) values ('" + msg.userreg + "','" + msg.passreg + "',0,0)", function(err,rows,fields) {});
-					mysql.query("insert into stats (nome,giocate,vinte,perse,perc) values ('" + msg.userreg + "',0,0,0,0)", function(err,rows,fields) {});
+					mysql.query("insert into users (username,password,online,table,ammonito) values ('" + msg.userreg + "','" + msg.passreg + "',0,0,0)");
+					mysql.query("insert into stats (nome,giocate,vinte,perse,perc) values ('" + msg.userreg + "',0,0,0,0)");
 				}
 			});
 		}else if (msg.usrnewpwd != undefined){
 			mysql.query("select * from users where username = '" + msg.usrnewpwd + "'", function(err,rows,fields) {
-				mysql.query("update users set password = '" + msg.newpwd + "' where username = '" + msg.usrnewpwd + "'", function(err,rows,fields) {});
+				mysql.query("update users set password = '" + msg.newpwd + "' where username = '" + msg.usrnewpwd + "'");
 			});
 		}else if (msg.username != undefined){
 			mysql.query("select * from users where username = '" + msg.username + "' && password = '" + msg.password + "'", function(err,rows,fields) {
@@ -134,7 +142,7 @@ wss.on('connection', function(connection) {
 						for (i=0;i<rows.length;i++){
 							onlines.push(rows[i].username);
 						}
-						mysql.query("update users set online = 1 where username = '" + msg.username + "'", function(err,rows,fields) {});
+						mysql.query("update users set online = 1 where username = '" + msg.username + "'");
 						username = msg.username;
 						sendToAll({userlogin:username});
 						players.push(username);
@@ -149,7 +157,7 @@ wss.on('connection', function(connection) {
 			});
 		}else if (msg.newtable != undefined){
 			mysql.query("select * from users where username = '" + msg.newtable + "'", function(err,rows,fields) {
-				mysql.query("insert into tables (id,pl1,pl2,pl3,pl4) values (" + rows[0].id + ",'" + msg.newtable + "','','','')", function(errr,rowss,fieldss) {});
+				mysql.query("insert into tables (id,pl1,pl2,pl3,pl4) values (" + rows[0].id + ",'" + msg.newtable + "','','','')");
 				sendToAll({newtable:msg.newtable, id:rows[0].id});
 			});
 		}else if (msg.entertable != undefined){
@@ -161,14 +169,14 @@ wss.on('connection', function(connection) {
 				}else if (rows[0].pl4 == ""){
 					ind = 4;
 				}
-				mysql.query("update tables set pl" + ind + " = '" + msg.entertable + "' where id = " + msg.id, function(err,rows,fields){});
+				mysql.query("update tables set pl" + ind + " = '" + msg.entertable + "' where id = " + msg.id);
 				if (ind == 4){
 					mysql.query("select * from tables where id = " + msg.id, function(err,rows,fields) {
 						gg = [rows[0].pl1,rows[0].pl2,rows[0].pl3,rows[0].pl4];
-						mysql.query("update users set online = 0, tavolo = " + msg.id + " where username = '" + gg[0] + "'", function(errr,rowss,fieldss) {});
-						mysql.query("update users set online = 0, tavolo = " + msg.id + " where username = '" + gg[1] + "'", function(errr,rowss,fieldss) {});
-						mysql.query("update users set online = 0, tavolo = " + msg.id + " where username = '" + gg[2] + "'", function(errr,rowss,fieldss) {});
-						mysql.query("update users set online = 0, tavolo = " + msg.id + " where username = '" + gg[3] + "'", function(errr,rowss,fieldss) {});
+						mysql.query("update users set online = 0, tavolo = " + msg.id + " where username = '" + gg[0] + "'");
+						mysql.query("update users set online = 0, tavolo = " + msg.id + " where username = '" + gg[1] + "'");
+						mysql.query("update users set online = 0, tavolo = " + msg.id + " where username = '" + gg[2] + "'");
+						mysql.query("update users set online = 0, tavolo = " + msg.id + " where username = '" + gg[3] + "'");
 					
 					/////////// comincia la partita
 					
@@ -179,7 +187,7 @@ wss.on('connection', function(connection) {
 							atb[msg.id].connections[i].send(JSON.stringify({beginplayers:gg, id:msg.id}));
 							atb[msg.id].connections[i].send(JSON.stringify({carte:carte[i], id:msg.id}));
 						}
-						mysql.query("delete from tables where id = " + msg.id, function(err,rows,fields) {});
+						mysql.query("delete from tables where id = " + msg.id);
 					});
 				}
 				sendToAll({entertable:msg.entertable, id:msg.id, ind:ind});
@@ -191,11 +199,11 @@ wss.on('connection', function(connection) {
 				}else if (rows[0].pl3 == msg.awayfromtable){
 					ind = 3;
 				}
-				mysql.query("update tables set pl" + ind + " = '" + rows[0].pl3 + "', pl3 = '' where id = " + msg.id, function(err,rows,fields) {});
+				mysql.query("update tables set pl" + ind + " = '" + rows[0].pl3 + "', pl3 = '' where id = " + msg.id);
 				sendToAll({awayfromtable:msg.awayfromtable, id:msg.id, ind:ind});
 			});
 		}else if (msg.destroytable != undefined){
-			mysql.query("delete from tables where id = " + msg.destroytable, function(err,rows,fields) {});
+			mysql.query("delete from tables where id = " + msg.destroytable);
 			sendToAll({destroytable:msg.destroytable});
 		}else if (msg.wantstats != undefined){
 			v = ["nome","vinte","perse","giocate","perc"];
@@ -249,13 +257,13 @@ wss.on('connection', function(connection) {
 			}
 		}else if (msg.vinto != undefined){
 			for (i=0;i<4;i++){
-				mysql.query("update stats set giocate = giocate + 1 where nome = '" + atb[msg.id].players[i] + "'", function(err,rows,fields){});
+				mysql.query("update stats set giocate = giocate + 1 where nome = '" + atb[msg.id].players[i] + "'");
 				if (atb[msg.id].players[i] == msg.vinto){
-					mysql.query("update stats set vinte = vinte + 1 where nome = '" + msg.vinto + "'", function(err,rows,fields) {});
+					mysql.query("update stats set vinte = vinte + 1 where nome = '" + msg.vinto + "'");
 				}else{
-					mysql.query("update stats set perse = perse + 1 where nome = '" + atb[msg.id].players[i] + "'", function(err,rows,fields){});
+					mysql.query("update stats set perse = perse + 1 where nome = '" + atb[msg.id].players[i] + "'");
 				}
-				mysql.query("update stats set perc = vinte*100/giocate where nome = '" + atb[msg.id].players[i] + "'", function(err,rows,fields){});
+				mysql.query("update stats set perc = vinte*100/giocate where nome = '" + atb[msg.id].players[i] + "'");
 			}
 			sendToTable(msg,msg.id);
 		}else if (msg.chiudo != undefined){
@@ -271,17 +279,17 @@ wss.on('connection', function(connection) {
 				connections.splice(ind,1);
 				mysql.query("select * from tables where pl1 = '" + username + "'", function(err,rows,fields) {
 					if (rows.length > 0){
-						mysql.query("delete from tables where id = " + rows[0].id, function(errr,rowss,fieldss) {});
+						mysql.query("delete from tables where id = " + rows[0].id);
 						sendToAll({userlogout:username, table:rows[0].id});
 					}else{
 						mysql.query("select * from tables where pl2 = '" + username + "'", function(errr,rowss,fieldss) {
 							if (rowss.length > 0){
-								mysql.query("update tables set pl2 = '" + rowss[0].pl3 + "', pl3 = '' where id = " + rowss[0].id, function(e,r,f) {});
+								mysql.query("update tables set pl2 = '" + rowss[0].pl3 + "', pl3 = '' where id = " + rowss[0].id);
 								sendToAll({userlogout:username, table:0, id:rowss[0].id});
 							}else{
 								mysql.query("select * from tables where pl3 = '" + username + "'", function(errrr,rowsss,fieldsss) {
 									if (rowsss.length > 0){
-										mysql.query("update tables set pl3 = '' where id = " + rowsss[0].id, function(e,r,f) {});
+										mysql.query("update tables set pl3 = '' where id = " + rowsss[0].id);
 										sendToAll({userlogout:username, table:0, id:rowsss[0].id});
 									}else{
 										sendToAll({userlogout:username, table:0, id:0});
@@ -292,9 +300,18 @@ wss.on('connection', function(connection) {
 					}
 				});
 			}else{
+				mysql.query("select * from users where username = '" + username + "'", function(err,rows,fields){
+					if (rows[0].ammonito == 0){
+						mysql.query("update users set ammonito = 1 where username = '" + username + "'");
+					}else{
+						mysql.query("update users set ammonito = 0 where username = '" + username + "'");
+						mysql.query("update stats set vinte = vinte - 1 where nome = '" + username + "'");
+						mysql.query("update stats set perc = vinte*100/giocate where nome = '" + username + "'");
+					}
+				});
 				clean_on_exit(r[0].tavolo,username);
 			}
-			mysql.query("update users set online = 0 where username = '" + username + "'", function(err,rows,fields) {});
+			mysql.query("update users set online = 0 where username = '" + username + "'");
 		});
 		connection.close();
 	});

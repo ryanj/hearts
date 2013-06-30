@@ -60,6 +60,7 @@ var ingameovest = "";
 var ingameest = "";
 var ingamenord = "";
 var ingamesud = "";
+var qualcunouscito = false;
 
 // funzioni di login //
 
@@ -398,6 +399,7 @@ function refresh(){
 	tocca = false;
 	toccaux = false;
 	broken = false;
+	qualcunouscito = false;
 	primo = -1;
 	giocate = 0;
 	partials = [0,0,0,0];
@@ -432,6 +434,11 @@ $(document).ready(function(){
 	$("#statsframe").css("height",(window.innerHeight-18));
 	$("#regoleframe").css("height",(window.innerHeight-18));
 	$("#onlineside").css("height",(window.innerHeight-37));
+	window.onbeforeunload = function(){
+		if (document.body.className == "bodygame" && !qualcunouscito){
+			return "Abbandonando la partita subisci un'ammonizione.\nAlla seconda ammonizione ti viene scalata una vittoria dalle statistiche del tuo profilo.";
+		}
+	}
 	$(window).resize(function() {
 		$("#tavoliframe").css("height",(window.innerHeight-50));
 		$("#profiloframe").css("height",(window.innerHeight-18));
@@ -1014,6 +1021,7 @@ $(document).ready(function(){
     		document.getElementById("passa").style.display = "none";
     		document.getElementById("viste").style.display = "none";
 			document.getElementById("closebutton").style.display = "block";
+			qualcunouscito = true;
 		}
 	};
 	
