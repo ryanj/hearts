@@ -14,8 +14,8 @@ $ npm install
 
 <h3>Make a few changes:</h3>
 
-Change 'host', 'port', 'mysqluser' and 'mysqlpasswd' variables in <i>server.js</i><br>
-Change websocket address and port in <i>index.html</i>
+Change 'host', 'port', 'mysqluser' and 'mysqlpasswd' variables in <code>server.js</code><br>
+Change websocket address and port in <code>index.html</code>
 
 <h3>Run:</h3>
 
