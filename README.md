@@ -1,4 +1,4 @@
-hearts-websocket
+hearts
 ================
 
 A multiplayer online Hearts card game application using 'websocket' nodejs module.<br>
