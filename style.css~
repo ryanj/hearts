@@ -305,7 +305,7 @@ form {
 	box-shadow: 0px 0px 20px black;
 }
 
-.review {
+.rivedi {
 	float: right;
 	padding: 12px;
 }

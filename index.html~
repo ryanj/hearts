@@ -922,8 +922,8 @@ $(document).ready(function(){
 							socket.send(JSON.stringify({clear:0, id:idtable}));
 							clearInterval(timer);
 						}
-					}, 8);
-				}, 2000);
+					}, 2000);
+				}, 1);
 			}
     	}else if (msg.clear != undefined){
     		ultimamano = ultimaux;
