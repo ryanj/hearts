@@ -17,7 +17,6 @@
 
 var host = "localhost";
 var port = 30000;
-var mysqlpasswd = "pippo";  //'g2JVud96hJ7fl';
 
 function shuffle(o){
 	for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
@@ -66,12 +65,12 @@ function dai_carte(){
 };
 
 WebSocketServer = require('ws').Server;
-var wss = new WebSocketServer({host:host, port:port});
+var wss = new WebSocketServer({host: "localhost", port: 30000});
 var newmysql = require('mysql');
 var mysql = newmysql.createConnection({
 	host: 'localhost',
 	user: 'root',
-	password : mysqlpasswd,
+	password : 'pippo', //'g2JVud96hJ7fl',
 });
 mysql.connect();
 mysql.query("use hearts", function(err,rows,fields){
