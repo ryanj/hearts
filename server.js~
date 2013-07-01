@@ -15,15 +15,10 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 
 
-//var host = "localhost";
-//var port = 30000;
-//var mysqluser = "root";
-//var mysqlpasswd = "pippo";
-
-var host = process.env.OPENSHIFT_NODEJS_IP || 'localhost';
-var port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
-var mysqluser = "admina5BpEBe";
-var mysqlpasswd = "psXhdLWTGJ7R";
+var host = "localhost";
+var port = 30000;
+var mysqluser = "root";
+var mysqlpasswd = "pippo";
 
 function shuffle(o){
 	for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
