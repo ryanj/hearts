@@ -1,7 +1,7 @@
 Hearts!
 =======
 
-A multiplayer online Hearts card game application using 'websocket' nodejs module.<br>
+A multiplayer online Hearts card game application using 'ws' (websocket) nodejs module.<br>
 This software is distributed under the General Public Licence.
 
 <h3>Compile dependencies:</h3>
