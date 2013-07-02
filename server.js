@@ -132,7 +132,7 @@ wss.on('connection', function(connection) {
 					connection.send(JSON.stringify({userregerror:1}));
 				}else{
 					connection.send(JSON.stringify({userregerror:0}));
-					mysql.query("insert into users (username,password,online,table,ammonito) values ('" + msg.userreg + "','" + msg.passreg + "',0,0,0)");
+					mysql.query("insert into users (username,password,online,tavolo,ammonito) values ('" + msg.userreg + "','" + msg.passreg + "',0,0,0)");
 					mysql.query("insert into stats (nome,giocate,vinte,perse,perc) values ('" + msg.userreg + "',0,0,0,0)");
 				}
 			});
