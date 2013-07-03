@@ -31,6 +31,7 @@ var mysqlport = process.env.OPENSHIFT_MYSQL_DB_PORT;
 var user = process.env.OPENSHIFT_MYSQL_DB_USERNAME;
 var password = process.env.OPENSHIFT_MYSQL_DB_PASSWORD;
 
+
 function shuffle(o){
 	for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
 	return o;
@@ -78,15 +79,20 @@ function dai_carte(){
 };
 
 WebSocketServer = require('ws').Server;
+console.log('starting');
 var wss = new WebSocketServer({host:host, port:port});
+console.log('starting.');
 var newmysql = require('mysql');
+console.log('starting..');
 var mysql = newmysql.createConnection({
 	host: mysqlhost,
-	port: mysqlport;
-	user: mysqluser,
-	password : mysqlpasswd,
+	port: mysqlport,
+	user: user,
+	password : password,
 });
+console.log('starting...');
 mysql.connect();
+console.log('starting....');
 mysql.query("use hearts", function(err,rows,fields){
 	if (err != null){
 		mysql.query("create database hearts");
@@ -99,6 +105,7 @@ mysql.query("use hearts", function(err,rows,fields){
 var connections = [];
 var players = [];
 var atb = new Array();
+console.log('starting.....');
 
 function sendToAll(mess){
 	for (i=0;i<connections.length;i++){
@@ -454,6 +461,11 @@ var SampleApp = function() {
             res.set('Content-Type', 'text/html');
             res.send(self.cache_get('index.html') );
         };
+        
+        self.routes['/'] = function(req, res) {
+            res.set('Content-Type', 'text/html');
+            res.send(self.cache_get('index.html') );
+        };
     };
 
 
@@ -469,6 +481,10 @@ var SampleApp = function() {
         for (var r in self.routes) {
             self.app.get(r, self.routes[r]);
         }
+        self.app.use('/img', express.static(__dirname+'/img'));
+        self.app.use('/themes', express.static(__dirname+'/themes'));
+        self.app.use('/css', express.static(__dirname+'/css'));
+        self.app.use('/js', express.static(__dirname+'/js'));
     };
 
 
@@ -503,6 +519,6 @@ var SampleApp = function() {
 /**
  *  main():  Main code.
  */
-//var zapp = new SampleApp();
-//zapp.initialize();
-//zapp.start();
+var zapp = new SampleApp();
+zapp.initialize();
+zapp.start();
