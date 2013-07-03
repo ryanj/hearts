@@ -27,9 +27,13 @@
 
 // variabili di login //
 
-//var socket = new WebSocket("ws://localhost:30000/index.html");
+if(window.location.hostname == 'localhost'){
+  var socket_addr = "ws://localhost:8080/"
+}else{
+  var socket_addr = "ws://"+windlow.location.hostname+":8000/";
+}
+var socket = new WebSocket(socket_addr);
 
-var socket = new WebSocket("ws://hearts-lellolandi.rhcloud.com/:8000");
 var userreg = "";
 var name = "";
 var passwd = "";
