@@ -24,8 +24,8 @@ var host = process.env.OPENSHIFT_NODEJS_IP || 'localhost';
 var port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
 var mysqlhost = process.env.OPENSHIFT_MYSQL_DB_HOST || "localhost";
 var mysqlport = process.env.OPENSHIFT_MYSQL_DB_PORT;
-var user: process.env.OPENSHIFT_MYSQL_DB_USERNAME;
-var	password: process.env.OPENSHIFT_MYSQL_DB_PASSWORD;
+var	user: process.env.OPENSHIFT_MYSQL_DB_USERNAME;
+var password: process.env.OPENSHIFT_MYSQL_DB_PASSWORD;
 
 function shuffle(o){
 	for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
