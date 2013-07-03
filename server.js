@@ -22,8 +22,10 @@
 
 var host = process.env.OPENSHIFT_NODEJS_IP || 'localhost';
 var port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
-var mysqluser = "admina5BpEBe";
-var mysqlpasswd = "psXhdLWTGJ7R";
+var mysqlhost = process.env.OPENSHIFT_MYSQL_DB_HOST || "localhost";
+var mysqlport = process.env.OPENSHIFT_MYSQL_DB_PORT;
+var user: process.env.OPENSHIFT_MYSQL_DB_USERNAME;
+var	password: process.env.OPENSHIFT_MYSQL_DB_PASSWORD;
 
 function shuffle(o){
 	for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
@@ -75,7 +77,8 @@ WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({host:host, port:port});
 var newmysql = require('mysql');
 var mysql = newmysql.createConnection({
-	host: host,
+	host: mysqlhost,
+	port: mysqlport;
 	user: mysqluser,
 	password : mysqlpasswd,
 });
