@@ -4,10 +4,28 @@
   "author": "lellolandi <lellolandi@gmail.com>",
   "dependencies": {
     "ws": "*",
+    "express": "*",
     "mysql": "*"
   },
+  "keywords": [
+    "OpenShift",
+    "Node.js",
+    "application",
+    "openshift"
+  ],
+  "homepage": "http://openshift.redhat.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://gitub.com/openshift/nodejs-custom-version-openshift.git"
+  },
   "engines": {
-    "node": "*",
-    "npm": "*"
-  }
+    "node": ">= 0.10.9",
+    "npm": ">= 1.0.0"
+  },
+  "devDependencies": {},
+  "bundleDependencies": [],
+  "scripts": {
+    "start": "node server.js"
+  },
+  "main": "server.js"
 }
